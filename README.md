@@ -1,49 +1,47 @@
-# Crear la solución vacía
+# Esqueleto de la aplicación - ESQ
+
+## ESQ.1 Crear la solución y las capas
 dotnet new sln -n AutoFleet
-
-# 1. Capa de API (Presentación - Controllers, Middleware, Swagger, JWT)
+## ESQ.2 Crear cada capa
+### ESQ.2.1 Capa de API (Presentación - Controllers, Middleware, Swagger, JWT)
 dotnet new webapi -n AutoFleet.API
-
-# 2. Capa de Core (Dominio - Entidades, Interfaces, DTOs)
+### ESQ.2.2 Capa de Core (Dominio - Entidades, Interfaces, DTOs)
 dotnet new classlib -n AutoFleet.Core
-
-# 3. Capa de Infrastructure (Datos - Repositories, EF Core, Migrations)
+### ESQ.2.3 Capa de Infrastructure (Datos - Repositories, EF Core, Migrations)
 dotnet new classlib -n AutoFleet.Infrastructure
-
-# 4. Crear la capa de Aplicación
+### ESQ.2.4 Crear la capa de Aplicación (Casos de uso)
 dotnet new classlib -n AutoFleet.Application
 
-# Agregar proyectos a la solución
+## ESQ.3 Agregar proyectos a la solución
 dotnet sln add AutoFleet.API/AutoFleet.API.csproj
 dotnet sln add AutoFleet.Core/AutoFleet.Core.csproj
 dotnet sln add AutoFleet.Infrastructure/AutoFleet.Infrastructure.csproj
 dotnet sln add AutoFleet.Application/AutoFleet.Application.csproj
 
-# Referencias entre capas (La dependencia fluye hacia adentro o hacia infraestructura)
-# API usa Core e Infrastructure
+## ESQ.4 Referencias entre capas (La dependencia fluye hacia adentro o hacia infraestructura)
+### ESQ.4.1 API usa Core e Infrastructure
 dotnet add AutoFleet.API/AutoFleet.API.csproj reference AutoFleet.Core/AutoFleet.Core.csproj
 dotnet add AutoFleet.API/AutoFleet.API.csproj reference AutoFleet.Infrastructure/AutoFleet.Infrastructure.csproj
 dotnet add AutoFleet.API/AutoFleet.API.csproj reference AutoFleet.Application/AutoFleet.Application.csproj
-
-# Infrastructure usa Core (para implementar interfaces)
+#### Se agrega a API Infraestructure
+dotnet add AutoFleet.API reference AutoFleet.Infrastructure/
+### ESQ.4.2 Infrastructure usa Core (para implementar interfaces)
 dotnet add AutoFleet.Infrastructure/AutoFleet.Infrastructure.csproj reference AutoFleet.Core/AutoFleet.Core.csproj
 dotnet add AutoFleet.Infrastructure/AutoFleet.Infrastructure.csproj reference AutoFleet.Application/AutoFleet.Application.csproj
-
-# Application usa Core (porque maneja Entidades)
+### ESQ.4.3 Application usa Core (porque maneja Entidades)
 dotnet add AutoFleet.Application/AutoFleet.Application.csproj reference AutoFleet.Core/AutoFleet.Core.csproj
 
-# Agrega EF
-# Para el proyecto de Infraestructura (el que hace el trabajo sucio)
+## ESQ.5 Agrega EF
+### ESQ.5.1 Para el proyecto de Infraestructura (el que hace el trabajo sucio)
 dotnet add AutoFleet.Infrastructure/AutoFleet.Infrastructure.csproj package Microsoft.EntityFrameworkCore.SqlServer
-
-# Para el proyecto de API (el que ejecuta los comandos de herramientas)
+### ESQ.5.2 Para el proyecto de API (el que ejecuta los comandos de herramientas)
 dotnet add AutoFleet.API/AutoFleet.API.csproj package Microsoft.EntityFrameworkCore.Design
 
-# Crear la migración inicial (esto genera código C# SQL)
+## ESQ.6 Crear la migración inicial (esto genera código C# SQL)
 dotnet ef migrations add InitialCreate --project AutoFleet.Infrastructure --startup-project AutoFleet.API
 
-# Aplicar la migración (esto ejecuta el SQL en el contenedor)
+## ESQ.7 Aplicar la migración (esto ejecuta el SQL en el contenedor)
 dotnet ef database update --project AutoFleet.Infrastructure --startup-project AutoFleet.API
 
-# Instalar el swagger
+## ESQ.8 Instalar el swagger
 dotnet add AutoFleet.API/AutoFleet.API.csproj package Swashbuckle.AspNetCore
