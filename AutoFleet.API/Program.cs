@@ -16,6 +16,10 @@ builder.Services.AddDbContext<AutoFleetDbContext>(options =>
 builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 
+// 3. Registramos Mongo Repository (¡NUEVO!)
+// Al usar AddScoped de nuevo con la misma interfaz, .NET crea una colección.
+builder.Services.AddScoped<IVehicleRepository, MongoVehicleRepository>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
