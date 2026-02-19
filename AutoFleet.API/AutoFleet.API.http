@@ -1,0 +1,6 @@
+@AutoFleet.API_HostAddress = http://localhost:5216
+
+GET {{AutoFleet.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
