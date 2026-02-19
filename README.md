@@ -45,3 +45,68 @@ dotnet ef database update --project AutoFleet.Infrastructure --startup-project A
 
 ## ESQ.8 Instalar el swagger
 dotnet add AutoFleet.API/AutoFleet.API.csproj package Swashbuckle.AspNetCore
+
+# Aproximación intuitiva
+## 1. La Base de datos con Docker (compose.yml)
+Con Docker se crea un contenedor prefabricado, si se rompe o se requiere usar en otro dispositivo para desarrollo es más sencillo.
+Así se logra que funcione en diferentes entornos. Simulando un restaruante es el local que se alquiladonde montaremos todo, los clientes, mesas, etc.
+
+## 2. La API: El Mesero (VehiclesController.cs)
+Capa: Presentación (AutoFleet.API).
+
+¿Qué hace?
+
+Recibe al cliente (Postman/React).
+
+Toma la orden (POST /api/vehicles).
+
+¡OJO! No cocina. El mesero no toca la sartén. Solo pasa la nota a la cocina.
+
+¿Por qué está ahí?
+
+Separa la "puerta de entrada" de la lógica. Si mañana quieres cambiar la API por una App de Consola o una App Móvil, la lógica de cocina no cambia, solo cambias al mesero.
+
+## 3. La Application: El Chef (VehicleService.cs)
+Capa: Aplicación (AutoFleet.Application).
+
+¿Qué hace?
+
+Recibe la nota del mesero.
+
+Revisa las reglas: "¿Tenemos ingredientes? ¿El cliente es alérgico?". Aquí van las validaciones de negocio (ej: "No aceptamos autos anteriores a 1900").
+
+Coordina. Le pide al almacén los ingredientes y prepara el plato final (el DTO).
+
+Los DTOs (VehicleDto.cs):
+
+Es el Menú. El cliente elige del menú, no entra a la despensa a morder una vaca cruda.
+
+Tu lección: Nunca expongas tu Entidad de base de datos (la vaca) directamente al cliente. Usa DTOs (la hamburguesa) para proteger tus datos internos.
+
+## 4. El Core: Las Leyes de la Física (Vehicle.cs y Interfaces)
+Capa: Dominio (AutoFleet.Core).
+
+¿Qué hace?
+
+Define QUÉ es un vehículo. Un vehículo tiene marca y modelo aquí y en China. No le importa si se guarda en SQL, en Excel o en una servilleta.
+
+Define las Interfaces (IVehicleRepository): Son los "Contratos". El Core dice: "Necesito alguien que sepa guardar vehículos, no me importa cómo lo haga, solo firmen aquí".
+
+¿Por qué está ahí?
+
+Es el corazón puro. No tiene dependencias externas (ni NuGet de SQL, ni de API). Es lo más estable de tu sistema.
+
+## 5. La Infrastructure: El Almacén (VehicleRepository.cs y DbContext)
+Capa: Infraestructura (AutoFleet.Infrastructure).
+
+¿Qué hace?
+
+Es el único que sabe que estamos usando SQL Server.
+
+Implementa el contrato del Core. El Chef (Service) le dice "Guárdame esto" y el Almacén (Repository) sabe cómo traducir eso a INSERT INTO Vehicles....
+
+La Inyección de Dependencias (DependencyInjection.cs):
+
+Es el momento en que el dueño del restaurante conecta todo. Dice: "Cuando el Chef pida un almacén, denle ESTE almacén de SQL Server".
+
+Tu lección: Esto permite cambiar SQL Server por MongoDB en el futuro tocando solo esta capa, sin romper al Chef ni al Mesero.
