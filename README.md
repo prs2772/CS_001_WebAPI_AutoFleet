@@ -110,3 +110,6 @@ La Inyección de Dependencias (DependencyInjection.cs):
 Es el momento en que el dueño del restaurante conecta todo. Dice: "Cuando el Chef pida un almacén, denle ESTE almacén de SQL Server".
 
 Tu lección: Esto permite cambiar SQL Server por MongoDB en el futuro tocando solo esta capa, sin romper al Chef ni al Mesero.
+
+# Agregando una BD adicional para Persistencia políglota
+dotnet add AutoFleet.Infrastructure/AutoFleet.Infrastructure.csproj package MongoDB.Driver

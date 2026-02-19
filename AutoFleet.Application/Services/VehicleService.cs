@@ -7,30 +7,35 @@ namespace AutoFleet.Application.Services
 {
     public class VehicleService : IVehicleService
     {
-        private readonly IVehicleRepository _repository;
+        // CAMBIO: Ahora recibimos una LISTA de repositorios (IEnumerable)
+        private readonly IEnumerable<IVehicleRepository> _repositories;
 
-        public VehicleService(IVehicleRepository repository)
+        public VehicleService(IEnumerable<IVehicleRepository> repositories)
         {
-            _repository = repository;
+            _repositories = repositories;
         }
 
         public async Task<IEnumerable<VehicleDto>> GetAllVehiclesAsync()
         {
-            var vehicles = await _repository.GetAllAsync();
-            
-            // Mapeo manual (luego usaremos AutoMapper si quieres)
-            return vehicles.Select(v => new VehicleDto 
-            { 
-                Brand = v.Brand, 
-                Model = v.Model, 
-                Price = v.Price 
-            });
+            // Para leer, usualmente elegimos UNA fuente principal.
+            // Aquí tomamos el primero (que será SQL Server por orden de registro)
+            var primaryRepo = _repositories.FirstOrDefault();
+
+            if (primaryRepo != null)
+            {
+                var vehicles = await primaryRepo.GetAllAsync();
+                return vehicles.Select(v => new VehicleDto
+                {
+                    Brand = v.Brand,
+                    Model = v.Model,
+                    Price = v.Price
+                });
+            }
+            return new List<VehicleDto>();
         }
 
         public async Task<VehicleDto> CreateVehicleAsync(CreateVehicleDto dto)
         {
-            // Aquí podrías validar reglas de negocio complejas (ej: "No aceptar autos anteriores a 1950")
-            
             var vehicle = new Vehicle
             {
                 Vin = dto.Vin,
@@ -41,13 +46,18 @@ namespace AutoFleet.Application.Services
                 IsSold = false
             };
 
-            await _repository.AddAsync(vehicle);
+            // LA MAGIA: Iteramos sobre todos los repositorios registrados
+            // y guardamos en todos (SQL y Mongo)
+            foreach (var repo in _repositories)
+            {
+                await repo.AddAsync(vehicle);
+            }
 
-            return new VehicleDto 
-            { 
-                Brand = vehicle.Brand, 
-                Model = vehicle.Model, 
-                Price = vehicle.Price 
+            return new VehicleDto
+            {
+                Brand = vehicle.Brand,
+                Model = vehicle.Model,
+                Price = vehicle.Price
             };
         }
     }

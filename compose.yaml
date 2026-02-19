@@ -13,6 +13,17 @@ services:
     volumes:
       - sql_data:/var/opt/mssql
 
+  # Agregada nueva BD 2026-02-19: MongoDB
+  autofleet-mongo:
+    image: mongo:latest
+    container_name: autofleet_mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
 volumes:
   sql_data:
+  mongo_data: #Volumen de mongoDB
   
