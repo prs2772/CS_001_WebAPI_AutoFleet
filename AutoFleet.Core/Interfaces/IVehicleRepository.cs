@@ -1,4 +1,5 @@
 using AutoFleet.Core.Entities;
+using AutoFleet.Core.Models;
 
 namespace AutoFleet.Core.Interfaces
 {
@@ -13,7 +14,7 @@ namespace AutoFleet.Core.Interfaces
 
         #region Fleet Management
         // 20260221 + PRS: Added contact to get summary of available fleet
-        Task<List<InventoryItemDto>> GetAvailableFleetSummaryAsync();
+        Task<List<InventoryItem>> GetAvailableFleetSummaryAsync();
 
         #endregion
     }

@@ -3,6 +3,7 @@ using AutoFleet.Core.Entities;
 using AutoFleet.Core.Interfaces;
 using AutoFleet.Infrastructure.Data;
 using AutoFleet.Application.DTOs;
+using AutoFleet.Core.Models;
 
 namespace AutoFleet.Infrastructure.Repositories;
 
@@ -32,13 +33,13 @@ public class VehicleRepository : IVehicleRepository
     }
 
     // 20260221 + PRS: Added method to get summary of available fleet
-    public async Task<List<InventoryItemDto>> GetAvailableFleetSummaryAsync()
+    public async Task<List<InventoryItem>> GetAvailableFleetSummaryAsync()
     {
         // SQL: SELECT Brand + ' ' + Model, PassengerCapacity, COUNT(*) FROM Vehicles WHERE Status = 1 GROUP BY Brand, Model, PassengerCapacity
         var inventory = await _context.Vehicles
             .Where(v => v.Status == VehicleStatus.Available)
             .GroupBy(v => new { v.Brand, v.Model, v.PassengerCapacity })
-            .Select(g => new InventoryItemDto
+            .Select(g => new InventoryItem
             {
                 VehicleName = g.Key.Brand + " " + g.Key.Model,
                 Capacity = g.Key.PassengerCapacity,

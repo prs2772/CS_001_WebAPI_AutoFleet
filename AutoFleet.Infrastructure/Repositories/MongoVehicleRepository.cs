@@ -2,6 +2,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using AutoFleet.Core.Entities;
+using AutoFleet.Core.Models;
 using AutoFleet.Core.Interfaces;
 
 namespace AutoFleet.Infrastructure.Repositories
@@ -64,6 +65,15 @@ namespace AutoFleet.Infrastructure.Repositories
             public decimal Price { get; set; }
             public bool IsSold { get; set; }
             public DateTime StoredAt { get; set; }
+        }
+
+        public async Task<List<InventoryItem>> GetAvailableFleetSummaryAsync()
+        {
+            // Opción A: Retornar vacío por ahora (ya que nos enfocamos en SQL)
+            return await Task.FromResult(new List<InventoryItem>());
+
+            // Opción B (Si quisieras implementarlo real en Mongo):
+            // Requiere agregaciones complejas que podemos ver luego.
         }
     }
 }

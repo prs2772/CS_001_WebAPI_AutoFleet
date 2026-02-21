@@ -1,5 +1,6 @@
 using AutoFleet.Application.DTOs;
 using AutoFleet.Application.Interfaces;
+using AutoFleet.Core.Interfaces;
 
 namespace AutoFleet.Application.Services;
 public class FleetOptimizerService : IFleetOptimizerService

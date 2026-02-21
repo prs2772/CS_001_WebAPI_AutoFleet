@@ -16,7 +16,7 @@ namespace AutoFleet.API.Controllers
         }
 
         [HttpPost("optimize")]
-        public IActionResult Optimize([FromBody] FleetRequestDto request)
+        public async Task<IActionResult> Optimize([FromBody] FleetRequestDto request)
         {
             // Validación simple
             if (request.TotalPassengers <= 0)
