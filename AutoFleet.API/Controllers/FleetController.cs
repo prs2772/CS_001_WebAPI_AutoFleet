@@ -30,7 +30,7 @@ namespace AutoFleet.API.Controllers
             // Si el número no es par o no encaja, podríamos "rellenar" artificialmente,
             // pero probemos el algoritmo puro primero.
             
-            var result = _optimizer.OptimizeAllocation(request.TotalPassengers);
+            var result = await _optimizer.OptimizeAllocationAsync(request.TotalPassengers);
 
             if (!result.IsPossible)
                 return BadRequest("No tenemos combinación exacta de vehículos para ese número de pasajeros (Intenta múltiplos de 2 o 4).");

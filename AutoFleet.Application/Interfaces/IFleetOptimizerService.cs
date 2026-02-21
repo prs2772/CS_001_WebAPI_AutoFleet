@@ -4,6 +4,6 @@ namespace AutoFleet.Application.Interfaces
 {
     public interface IFleetOptimizerService
     {
-        FleetAllocationResultDto OptimizeAllocation(int passengers);
+        Task<FleetAllocationResultDto> OptimizeAllocationAsync(int passengers);
     }
 }

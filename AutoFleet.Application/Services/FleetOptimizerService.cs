@@ -1,84 +1,90 @@
 using AutoFleet.Application.DTOs;
 using AutoFleet.Application.Interfaces;
 
-namespace AutoFleet.Application.Services
+namespace AutoFleet.Application.Services;
+public class FleetOptimizerService : IFleetOptimizerService
 {
-    public class FleetOptimizerService : IFleetOptimizerService
+    private readonly IVehicleRepository _repository; // Ahora necesitamos acceso a BD
+
+    public FleetOptimizerService(IVehicleRepository repository)
     {
-        // Definimos nuestra "flota disponible" (Capacidad -> Nombre)
-        // En un futuro, esto vendría de la Base de Datos (SQL/Mongo)
-        private readonly Dictionary<int, string> _vehicleTypes = new()
+        _repository = repository;
+    }
+
+    public async Task<FleetAllocationResultDto> OptimizeAllocationAsync(int targetPassengers)
+    {
+        // 1. OBTENER DATOS REALES DE LA BD
+        var availableFleet = await _repository.GetAvailableFleetSummaryAsync();
+
+        // Ordenamos por capacidad descendente (Estrategia Greedy: llenar los grandes primero)
+        var sortedFleet = availableFleet.OrderByDescending(x => x.Capacity).ToList();
+
+        var result = new FleetAllocationResultDto();
+        int remainingPassengers = targetPassengers;
+
+        // 2. ALGORITMO DE ASIGNACIÓN (Con Stock Finito)
+        foreach (var vehicleType in sortedFleet)
         {
-            { 50, "Autobús (50 pax)" },
-            { 20, "Minibus (20 pax)" },
-            { 10, "Van (10 pax)" },
-            { 4,  "Sedán (4 pax)" }  // "La moneda de a 1 peso" para asegurar cambio
-        };
+            if (remainingPassengers <= 0) break;
 
-        public FleetAllocationResultDto OptimizeAllocation(int targetPassengers)
-        {
-            var capacities = _vehicleTypes.Keys.OrderByDescending(x => x).ToList();
+            // ¿Cuántos de este tipo necesito teóricamente?
+            int needed = remainingPassengers / vehicleType.Capacity;
             
-            // --- ALGORITMO DP (Igual que Coin Change) ---
+            // Si la división no es exacta, a veces conviene tomar uno extra si es el último recurso,
+            // pero por ahora llenamos al máximo posible.
             
-            // dp[i] = mínimo número de vehículos para 'i' pasajeros
-            int[] dp = new int[targetPassengers + 1];
-            int[] vehicleUsed = new int[targetPassengers + 1]; // Para reconstruir la solución
-            
-            Array.Fill(dp, targetPassengers + 1); // Llenamos con infinito
-            dp[0] = 0;
+            // ¿Cuántos tengo realmente?
+            int take = Math.Min(needed, vehicleType.AvailableCount);
 
-            for (int i = 1; i <= targetPassengers; i++)
+            if (take > 0)
             {
-                foreach (var cap in capacities)
-                {
-                    if (i - cap >= 0)
-                    {
-                        if (dp[i - cap] + 1 < dp[i])
-                        {
-                            dp[i] = dp[i - cap] + 1;
-                            vehicleUsed[i] = cap;
-                        }
-                    }
-                }
-            }
-
-            // --- Construcción de Respuesta ---
-            var result = new FleetAllocationResultDto();
-
-            // Si dp[target] sigue siendo > target, significa que no hay solución exacta
-            // (Por ejemplo, si pides 3 pax y solo tienes buses de 50)
-            if (dp[targetPassengers] > targetPassengers)
-            {
-                result.IsPossible = false;
-                // Aquí en la vida real, sugerirías "Sobredimensionar" (usar un sedán aunque sobre 1 lugar)
-                // Pero por pureza algorítmica:
-                return result; 
-            }
-
-            result.IsPossible = true;
-            result.TotalVehiclesNeeded = dp[targetPassengers];
-
-            // Reconstruir (Backtracking)
-            int remaining = targetPassengers;
-            while (remaining > 0)
-            {
-                int cap = vehicleUsed[remaining];
-                string name = _vehicleTypes[cap];
-
-                // Agregar a la lista detallada
-                result.DetailedList.Add(name);
-
-                // Agregar al resumen (diccionario)
-                if (!result.VehicleBreakdown.ContainsKey(name))
-                    result.VehicleBreakdown[name] = 0;
+                result.VehicleBreakdown.Add(vehicleType.VehicleName, take);
                 
-                result.VehicleBreakdown[name]++;
+                for(int i=0; i<take; i++) result.DetailedList.Add(vehicleType.VehicleName);
 
-                remaining -= cap;
+                remainingPassengers -= (take * vehicleType.Capacity);
+                result.TotalVehiclesNeeded += take;
             }
-
-            return result;
         }
+
+        // 3. MANEJO DE RESIDUOS (El "Resto")
+        // Si todavía queda gente (ej. quedan 3 personas) y ya usamos los grandes,
+        // buscamos el vehículo más pequeño disponible que pueda llevarlos.
+        if (remainingPassengers > 0)
+        {
+            // Buscamos en la flota (incluso los que ya usamos, si queda stock)
+            // uno que tenga capacidad >= remainingPassengers y tenga stock > 0
+            
+            // Nota: Para hacerlo perfecto, esto requiere actualizar el 'AvailableCount' localmente
+            // mientras iteramos arriba. Asumamos lógica simple:
+            
+            var smallBus = sortedFleet
+                .Where(v => v.Capacity >= remainingPassengers)
+                .OrderBy(v => v.Capacity) // El más chico que sirva
+                .FirstOrDefault(v => !result.VehicleBreakdown.ContainsKey(v.VehicleName) || 
+                                     result.VehicleBreakdown[v.VehicleName] < v.AvailableCount);
+
+            if (smallBus != null)
+            {
+                if (!result.VehicleBreakdown.ContainsKey(smallBus.VehicleName))
+                    result.VehicleBreakdown[smallBus.VehicleName] = 0;
+                
+                result.VehicleBreakdown[smallBus.VehicleName]++;
+                result.DetailedList.Add(smallBus.VehicleName);
+                result.TotalVehiclesNeeded++;
+                remainingPassengers = 0;
+            }
+        }
+
+        result.IsPossible = remainingPassengers <= 0;
+        
+        if (!result.IsPossible)
+        {
+            // Caso de borde: No hay suficientes coches en toda la empresa
+            result.DetailedList.Clear(); // O dejarla parcial
+            // Agregar mensaje de error
+        }
+
+        return result;
     }
 }

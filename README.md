@@ -128,3 +128,6 @@ SUV: 5 pasajeros.
 Sedán: 4 pasajeros.
 Objetivo: MinCoins -> Mínimo número de choferes/vehículos requeridos.
 
+## Se agrega posterior a los cambios, en la migración:
+dotnet ef migrations add AddCapacityAndStatus --project AutoFleet.Infrastructure --startup-project AutoFleet.API
+dotnet ef database update --project AutoFleet.Infrastructure --startup-project AutoFleet.API
