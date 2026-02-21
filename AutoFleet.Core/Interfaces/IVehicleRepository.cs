@@ -7,6 +7,5 @@ namespace AutoFleet.Core.Interfaces
         Task<IEnumerable<Vehicle>> GetAllAsync();
         Task<Vehicle?> GetByIdAsync(int id);
         Task AddAsync(Vehicle vehicle);
-        // Aquí irían Update y Delete
     }
 }
