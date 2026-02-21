@@ -111,5 +111,20 @@ Es el momento en que el dueño del restaurante conecta todo. Dice: "Cuando el Ch
 
 Tu lección: Esto permite cambiar SQL Server por MongoDB en el futuro tocando solo esta capa, sin romper al Chef ni al Mesero.
 
-# Agregando una BD adicional para Persistencia políglota
+# Agregando feature/002 una BD adicional para Persistencia políglota
 dotnet add AutoFleet.Infrastructure/AutoFleet.Infrastructure.csproj package MongoDB.Driver
+
+# Agregando feature/003 Optimizador de Flota para Eventos
+## Planteamiento
+El Problema de Negocio:
+Imagina que AutoFleet tiene un cliente corporativo (digamos, una empresa que organiza retiros). Te llaman y dicen:
+"Tengo que transportar a 87 empleados al aeropuerto pero en el futuro serán N. ¿Cuál es la mínima cantidad de vehículos que debo alquilar para llevarlos a todos, optimizando costos (usando los vehículos más grandes primero)?"
+El Mapeo del Algoritmo (Coin Change -> Fleet Allocation):
+Monto Total (N): Número total de pasajeros (ej. 87).
+Monedas: Capacidad de tus vehículos disponibles.
+Autobús: 50 pasajeros.
+Van Ejecutiva: 15 pasajeros.
+SUV: 5 pasajeros.
+Sedán: 4 pasajeros.
+Objetivo: MinCoins -> Mínimo número de choferes/vehículos requeridos.
+
