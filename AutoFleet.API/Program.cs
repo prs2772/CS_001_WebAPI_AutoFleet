@@ -4,6 +4,9 @@ using AutoFleet.Core.Interfaces;
 using AutoFleet.Application.Interfaces;
 using AutoFleet.Application.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,8 +28,36 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Configuración de JWT
+var key = Encoding.ASCII.GetBytes("EstaEsMiClaveSecretaSuperSeguraParaAutoFleet2026!"); // En PROD va a appsettings o KeyVault
+builder.Services.AddAuthentication(x =>
+{
+    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(x =>
+{
+    x.RequireHttpsMetadata = false;
+    x.SaveToken = true;
+    x.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = false,
+        ValidateAudience = false
+    };
+});
+
+// Habilitar CORS (Para que React/Angular/Consola puedan entrar)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+});
+
 var app = builder.Build();
 
+app.UseMiddleware<AutoFleet.API.Middlewares.ExceptionMiddleware>();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -34,8 +65,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowAll"); // <--- Importante para que el frontend pueda consumir la API sin problemas de CORS
 app.UseHttpsRedirection();
-app.UseAuthorization();
+app.UseAuthentication(); // <--- OBLIGATORIO: ¿Quién eres?
+app.UseAuthorization();  // <--- OBLIGATORIO: ¿Qué puedes hacer?
 app.MapControllers();
 
 app.Run();

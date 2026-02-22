@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using AutoFleet.Application.Interfaces;
 using AutoFleet.Application.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AutoFleet.API.Controllers
 {
+    [Authorize] // Requiere autenticación para acceder a cualquier endpoint
     [ApiController] // Habilita validaciones automáticas y comportamientos de API
     [Route("api/[controller]")] // La ruta será: api/vehicles
     public class VehiclesController : ControllerBase

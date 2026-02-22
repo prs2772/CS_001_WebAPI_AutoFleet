@@ -131,3 +131,15 @@ Objetivo: MinCoins -> Mínimo número de choferes/vehículos requeridos.
 ## Se agrega posterior a los cambios, en la migración:
 dotnet ef migrations add AddCapacityAndStatus --project AutoFleet.Infrastructure --startup-project AutoFleet.API
 dotnet ef database update --project AutoFleet.Infrastructure --startup-project AutoFleet.API
+
+# Agregando una primera opción de autenticación en feature/004 aprovechando que se unifican solucion inicial y problemática
+dotnet add AutoFleet.API/AutoFleet.API.csproj package Microsoft.AspNetCore.Authentication.JwtBearer
+## Creando a El Cliente Simulador (Consumo + Polly)
+### En la raíz
+dotnet new console -n AutoFleet.ConsoleClient
+dotnet sln add AutoFleet.ConsoleClient/AutoFleet.ConsoleClient.csproj
+
+### Agregar paquetes de HTTP y Polly
+dotnet add AutoFleet.ConsoleClient/AutoFleet.ConsoleClient.csproj package Microsoft.Extensions.Http
+dotnet add AutoFleet.ConsoleClient/AutoFleet.ConsoleClient.csproj package Microsoft.Extensions.Http.Polly
+dotnet add AutoFleet.ConsoleClient/AutoFleet.ConsoleClient.csproj package Newtonsoft.Json
