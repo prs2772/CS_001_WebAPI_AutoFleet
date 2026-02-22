@@ -2,21 +2,38 @@
 using Moq;
 using AutoFleet.Application.Services;
 using AutoFleet.Core.Interfaces;
-using AutoFleet.Core.Models; // <--- La clave del éxito
+using AutoFleet.Core.Models;
+using AutoFleet.Core.Enums;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace AutoFleet.Tests
 {
     public class FleetOptimizerServiceTests
     {
         private readonly Mock<IVehicleRepository> _mockRepo;
+        // private readonly Mock<ILogger<VehicleService>> _mockLogger; // Mock del logger
         private readonly FleetOptimizerService _service;
 
         public FleetOptimizerServiceTests()
         {
             _mockRepo = new Mock<IVehicleRepository>();
-            _service = new FleetOptimizerService(_mockRepo.Object);
+            // 2. Configurar comportamiento por defecto del Mock (Opcional pero recomendado)
+            // Si tu servicio filtra por SourceName="SQL", necesitamos que el mock diga que es SQL
+            _mockRepo.Setup(r => r.Source).Returns(RepositorySource.MICROSOFT_SQL);
+
+            // 3. Crear la lista (IEnumerable) que contiene al Mock
+            var reposList = new List<IVehicleRepository> { _mockRepo.Object };
+            
+            // 4. Inyectar la LISTA, no el objeto suelto
+            _service = new FleetOptimizerService(reposList);
+            // _mockLogger = new Mock<ILogger<VehicleService>>();
+
+            // // Pasar una lista con el repo mockeado y el logger mockeado
+            // var repos = new List<IVehicleRepository> { _mockRepo.Object };
+        
+            // _service = new VehicleService(repos, _mockLogger.Object); // <--- Inyectar el objeto simulado
         }
 
         [Fact]
@@ -37,7 +54,7 @@ namespace AutoFleet.Tests
                      .ReturnsAsync(fakeInventory);
 
             // --- ACT ---
-            var result = await _service.OptimizeAllocationAsync(passengers);
+            var result = await _service.GetSimpleAllocationAsync(passengers);
 
             // --- ASSERT ---
             Assert.True(result.IsPossible);
@@ -61,7 +78,7 @@ namespace AutoFleet.Tests
                      .ReturnsAsync(fakeInventory);
 
             // --- ACT ---
-            var result = await _service.OptimizeAllocationAsync(passengers);
+            var result = await _service.GetSimpleAllocationAsync(passengers);
 
             // --- ASSERT ---
             Assert.False(result.IsPossible);

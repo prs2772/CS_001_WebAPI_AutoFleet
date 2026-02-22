@@ -73,9 +73,10 @@ client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bear
 var vehiclesToUpload = new[]
 {
     // VINs ficticios de 17 caracteres
-    new { Vin = "SIMTESLAMODEL3001", Brand = "Tesla", Model = "Model 3", Year = 2025, Price = 45000, Status = 1, PassengerCapacity = 5 },
-    new { Vin = "SIMTESLAMODELY002", Brand = "Tesla", Model = "Model Y", Year = 2025, Price = 55000, Status = 1, PassengerCapacity = 7 },
-    new { Vin = "SIMFORDMACHE00003", Brand = "Ford", Model = "Mach-E", Year = 2024, Price = 40000, Status = 1, PassengerCapacity = 5 }
+    new { Vin = "SIMTESLAMODELY001", Brand = "Tesla", Model = "Model Y", Year = 2025, Price = 55000, Status = 1, PassengerCapacity = 4 },
+    new { Vin = "SIMTESLAMODEL3002", Brand = "Tesla", Model = "Turbo Jet", Year = 2077, Price = 999999, Status = 1, PassengerCapacity = 1 },
+    new { Vin = "SIMFORDMACHE00003", Brand = "Ford", Model = "Mach-E", Year = 2024, Price = 40000, Status = 1, PassengerCapacity = 6 },
+    new { Vin = "SIMTESLAMODELY004", Brand = "Tesla", Model = "Model Y", Year = 2025, Price = 55000, Status = 1, PassengerCapacity = 4 },
 };
 
 // D. Enviar con Resiliencia

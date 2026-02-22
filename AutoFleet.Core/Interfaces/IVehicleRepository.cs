@@ -1,5 +1,6 @@
 using AutoFleet.Core.Entities;
 using AutoFleet.Core.Models;
+using AutoFleet.Core.Enums;
 
 namespace AutoFleet.Core.Interfaces;
 
@@ -8,6 +9,11 @@ namespace AutoFleet.Core.Interfaces;
 /// </summary>
 public interface IVehicleRepository
 {
+    /// <summary>
+    /// Identifies the source as MSSQL or Mongo
+    /// </summary>
+    RepositorySource Source { get; }
+
     #region SingleVehicle Management
     Task<IEnumerable<Vehicle>> GetAllAsync();
     Task<Vehicle?> GetByIdAsync(int id);

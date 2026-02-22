@@ -4,11 +4,13 @@ using MongoDB.Driver;
 using AutoFleet.Core.Entities;
 using AutoFleet.Core.Models;
 using AutoFleet.Core.Interfaces;
+using AutoFleet.Core.Enums;
 
 namespace AutoFleet.Infrastructure.Repositories
 {
     public class MongoVehicleRepository : IVehicleRepository
     {
+        public RepositorySource Source {get;} = RepositorySource.MONGO;
         private readonly IMongoCollection<MongoVehicleDocument> _collection;
 
         // Constructor: Recibimos la cadena de conexión directamente o vía configuración

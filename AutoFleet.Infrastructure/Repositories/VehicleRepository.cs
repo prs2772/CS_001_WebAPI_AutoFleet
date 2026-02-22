@@ -4,11 +4,14 @@ using AutoFleet.Core.Interfaces;
 using AutoFleet.Infrastructure.Data;
 using AutoFleet.Application.DTOs;
 using AutoFleet.Core.Models;
+using AutoFleet.Core.Enums;
 
 namespace AutoFleet.Infrastructure.Repositories;
 
 public class VehicleRepository : IVehicleRepository
 {
+    public RepositorySource Source { get; } = RepositorySource.MICROSOFT_SQL;
+
     private readonly AutoFleetDbContext _context;
 
     public VehicleRepository(AutoFleetDbContext context)

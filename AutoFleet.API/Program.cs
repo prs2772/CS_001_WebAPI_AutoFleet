@@ -66,7 +66,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowAll"); // <--- Importante para que el frontend pueda consumir la API sin problemas de CORS
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.UseAuthentication(); // <--- OBLIGATORIO: ¿Quién eres?
 app.UseAuthorization();  // <--- OBLIGATORIO: ¿Qué puedes hacer?
 app.MapControllers();
