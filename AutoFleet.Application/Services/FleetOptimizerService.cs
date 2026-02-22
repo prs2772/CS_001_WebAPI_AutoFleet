@@ -89,14 +89,19 @@ public class FleetOptimizerService : IFleetOptimizerService
         var inventory = await _repository.GetAvailableFleetSummaryAsync();
 
         // 2. Flattening ([bus(20), bus(20), car(4)] instead of bus(20) x2, car(4) x1)
-        var allVehicles = new List<(string Name, int Capacity)>();
+        var allVehicles = new List<(string Name, int Capacity, decimal KmPerLiter, int Year)>();
         foreach (var item in inventory)
         {
             for (int i = 0; i < item.AvailableCount; i++)
             {
-                allVehicles.Add((item.VehicleName, item.Capacity));
+                allVehicles.Add((item.VehicleName, item.Capacity, item.KmPerLiter, item.Year));
             }
         }
+        // Sorting by KmPerLiter to take more eficient first
+        allVehicles = allVehicles
+            .OrderByDescending(v => v.Capacity) // First priority, minimum amount of drivers
+            .ThenByDescending(v => v.KmPerLiter)// If there are tie of capacity, take the one which gives more Km per Liter
+            .ToList();
 
         // 3. Dynamic Programming (DP) initialization
         // dp[i] = minimal mount of vehicles to reach i amount
@@ -157,7 +162,8 @@ public class FleetOptimizerService : IFleetOptimizerService
             int vIdx = parentVehicleIndex[currentP];
             var vehicle = allVehicles[vIdx];
 
-            result.DetailedList.Add(vehicle.Name); // The final vehicle that arrived
+            result.DetailedList.Add($"{vehicle.Name}, {vehicle.Year} ({vehicle.KmPerLiter}Km/L)"); // The final vehicle that arrived
+            result.AverageFleetKmPerLiter += vehicle.KmPerLiter;
 
             // Adding brief
             if (!result.VehicleBreakdown.ContainsKey(vehicle.Name))
@@ -168,6 +174,8 @@ public class FleetOptimizerService : IFleetOptimizerService
             // Going backwards n positions of capacity
             currentP = previousState[currentP];
         }
+        result.AverageFleetKmPerLiter /= result.TotalVehiclesNeeded;
+        result.AverageFleetKmPerLiter = Math.Round(result.AverageFleetKmPerLiter, 2);
 
         return result;
     }

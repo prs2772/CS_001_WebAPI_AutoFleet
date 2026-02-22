@@ -15,7 +15,7 @@ public class VehicleService : IVehicleService
     public VehicleService(IEnumerable<IVehicleRepository> repositories, ILogger<VehicleService> logger)
     {
         _repositories = repositories;
-        _logger = _logger;
+        _logger = logger;
     }
 
     // Implementing a failover pattern to read from primary but if it fails/doesnt find we look on the other sources.
@@ -37,7 +37,8 @@ public class VehicleService : IVehicleService
                     {
                         Brand = v.Brand,
                         Model = v.Model,
-                        Price = v.Price
+                        Price = v.Price,
+                        KmPerLiter = v.KmPerLiter
                     });
                 }
             }
@@ -63,7 +64,8 @@ public class VehicleService : IVehicleService
             Year = dto.Year,
             Price = dto.Price,
             IsSold = false,
-            PassengerCapacity = dto.PassengerCapacity
+            PassengerCapacity = dto.PassengerCapacity,
+            KmPerLiter = dto.KmPerLiter
         };
 
         // Iterating all data sources (SQL and Mongo) to persist the vehicle

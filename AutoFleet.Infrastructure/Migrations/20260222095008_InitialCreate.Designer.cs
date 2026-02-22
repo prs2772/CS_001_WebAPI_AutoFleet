@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AutoFleet.Infrastructure.Migrations
 {
     [DbContext(typeof(AutoFleetDbContext))]
-    [Migration("20260219221047_InitialCreate")]
+    [Migration("20260222095008_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -39,12 +39,21 @@ namespace AutoFleet.Infrastructure.Migrations
                     b.Property<bool>("IsSold")
                         .HasColumnType("bit");
 
+                    b.Property<decimal>("KmPerLiter")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("Model")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("PassengerCapacity")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<string>("Vin")
                         .IsRequired()

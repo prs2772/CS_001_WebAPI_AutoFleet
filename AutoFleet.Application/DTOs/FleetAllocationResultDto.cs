@@ -7,6 +7,7 @@ public class FleetAllocationResultDto
 {
     public bool IsPossible { get; set; }
     public int TotalVehiclesNeeded { get; set; }
-    public Dictionary<string, int> VehicleBreakdown { get; set; } = new();
-    public List<string> DetailedList { get; set; } = new();
+    public Dictionary<string, int> VehicleBreakdown { get; set; } = [];
+    public List<string> DetailedList { get; set; } = [];
+    public decimal AverageFleetKmPerLiter { get; set; }
 }

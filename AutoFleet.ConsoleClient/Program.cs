@@ -73,10 +73,11 @@ client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bear
 var vehiclesToUpload = new[]
 {
     // VINs ficticios de 17 caracteres
-    new { Vin = "SIMTESLAMODELY001", Brand = "Tesla", Model = "Model Y", Year = 2025, Price = 55000, Status = 1, PassengerCapacity = 4 },
-    new { Vin = "SIMTESLAMODEL3002", Brand = "Tesla", Model = "Turbo Jet", Year = 2077, Price = 999999, Status = 1, PassengerCapacity = 1 },
-    new { Vin = "SIMFORDMACHE00003", Brand = "Ford", Model = "Mach-E", Year = 2024, Price = 40000, Status = 1, PassengerCapacity = 6 },
-    new { Vin = "SIMTESLAMODELY004", Brand = "Tesla", Model = "Model Y", Year = 2025, Price = 55000, Status = 1, PassengerCapacity = 4 },
+    new { Vin = "SIMTESLAMODELY001", Brand = "Tesla", Model = "Model Y", Year = 2024, Price = 55000, Status = 1, PassengerCapacity = 4, KmPerLiter = 12 },
+    new { Vin = "SIMTESLAMODEL3002", Brand = "Tesla", Model = "Turbo Jet", Year = 2077, Price = 999999, Status = 1, PassengerCapacity = 1, KmPerLiter = 3 },
+    new { Vin = "SIMFORDMACHE00003", Brand = "Ford", Model = "Mach-E", Year = 2024, Price = 40000, Status = 1, PassengerCapacity = 6, KmPerLiter = 14 },
+    new { Vin = "SIMTESLAMODELY004", Brand = "Tesla", Model = "Model Y", Year = 2026, Price = 55000, Status = 1, PassengerCapacity = 4, KmPerLiter = 15 },
+    new { Vin = "SIMTESLAMODELY005", Brand = "Tesla", Model = "Model Y", Year = 2025, Price = 55000, Status = 1, PassengerCapacity = 4, KmPerLiter = 14 },
 };
 
 // D. Enviar con Resiliencia

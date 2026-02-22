@@ -36,6 +36,9 @@ namespace AutoFleet.Infrastructure.Migrations
                     b.Property<bool>("IsSold")
                         .HasColumnType("bit");
 
+                    b.Property<decimal>("KmPerLiter")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("Model")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

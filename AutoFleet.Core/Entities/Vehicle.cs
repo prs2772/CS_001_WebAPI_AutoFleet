@@ -16,4 +16,5 @@ public class Vehicle
     // 20260221 + PRS: Added new fields to comply with requirements
     public int PassengerCapacity { get; set; }
     public VehicleStatus Status { get; set; } = VehicleStatus.Available;
+    public decimal KmPerLiter { get; set; }
 }

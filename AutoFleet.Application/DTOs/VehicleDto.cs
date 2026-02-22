@@ -5,7 +5,8 @@ namespace AutoFleet.Application.DTOs;
 /// </summary>
 public class VehicleDto
 {
-    public string Brand { get; set; }
-    public string Model { get; set; }
+    public string Brand { get; set; } = string.Empty;
+    public string Model { get; set; } = string.Empty;
     public decimal Price { get; set; }
+    public decimal KmPerLiter { get; set; }
 }

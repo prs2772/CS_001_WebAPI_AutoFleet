@@ -161,3 +161,9 @@ dotnet add AutoFleet.Tests/AutoFleet.Tests.csproj package Moq
 # Logs en Application
 ## Agregando la interface ILogger en Application, la implementacion real se importa en API
 dotnet add AutoFleet.Application/ package Microsoft.Extensions.Logging.Abstractions
+
+# Reseteo de todo en EF
+dotnet ef database drop --project AutoFleet.Infrastructure --startup-project AutoFleet.API --force
+### Borrar la carpeta de migraciones completa
+dotnet ef migrations add InitialCreate --project AutoFleet.Infrastructure --startup-project AutoFleet.API
+dotnet ef database update --project AutoFleet.Infrastructure --startup-project AutoFleet.API

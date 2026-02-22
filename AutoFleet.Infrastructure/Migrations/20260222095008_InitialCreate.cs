@@ -21,7 +21,10 @@ namespace AutoFleet.Infrastructure.Migrations
                     Model = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Year = table.Column<int>(type: "int", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    IsSold = table.Column<bool>(type: "bit", nullable: false)
+                    IsSold = table.Column<bool>(type: "bit", nullable: false),
+                    PassengerCapacity = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    KmPerLiter = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {

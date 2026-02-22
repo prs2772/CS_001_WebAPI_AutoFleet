@@ -41,12 +41,14 @@ public class VehicleRepository : IVehicleRepository
         // SQL: SELECT Brand + ' ' + Model, PassengerCapacity, COUNT(*) FROM Vehicles WHERE Status = 1 GROUP BY Brand, Model, PassengerCapacity
         var inventory = await _context.Vehicles
             .Where(v => v.Status == VehicleStatus.Available)
-            .GroupBy(v => new { v.Brand, v.Model, v.PassengerCapacity })
+            .GroupBy(v => new { v.Brand, v.Model, v.PassengerCapacity, v.KmPerLiter, v.Year })
             .Select(g => new InventoryItem
             {
                 VehicleName = g.Key.Brand + " " + g.Key.Model,
                 Capacity = g.Key.PassengerCapacity,
-                AvailableCount = g.Count()
+                KmPerLiter = g.Key.KmPerLiter,
+                Year = g.Key.Year,
+                AvailableCount = g.Count(),
             })
             .ToListAsync();
 
