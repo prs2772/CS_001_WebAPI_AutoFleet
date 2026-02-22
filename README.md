@@ -143,3 +143,17 @@ dotnet sln add AutoFleet.ConsoleClient/AutoFleet.ConsoleClient.csproj
 dotnet add AutoFleet.ConsoleClient/AutoFleet.ConsoleClient.csproj package Microsoft.Extensions.Http
 dotnet add AutoFleet.ConsoleClient/AutoFleet.ConsoleClient.csproj package Microsoft.Extensions.Http.Polly
 dotnet add AutoFleet.ConsoleClient/AutoFleet.ConsoleClient.csproj package Newtonsoft.Json
+
+# Agregando tests
+## 1. Crear proyecto xUnit
+dotnet new xunit -n AutoFleet.Tests
+
+## 2. Agregarlo a la solución
+dotnet sln add AutoFleet.Tests/AutoFleet.Tests.csproj
+
+## 3. Referencias: El test necesita ver a Application y Core
+dotnet add AutoFleet.Tests/AutoFleet.Tests.csproj reference AutoFleet.Application/AutoFleet.Application.csproj
+dotnet add AutoFleet.Tests/AutoFleet.Tests.csproj reference AutoFleet.Core/AutoFleet.Core.csproj
+
+## 4. Instalar Moq (Para simular el Repositorio)
+dotnet add AutoFleet.Tests/AutoFleet.Tests.csproj package Moq
