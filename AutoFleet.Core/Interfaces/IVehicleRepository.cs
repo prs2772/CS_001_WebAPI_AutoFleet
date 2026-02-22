@@ -1,21 +1,27 @@
 using AutoFleet.Core.Entities;
 using AutoFleet.Core.Models;
 
-namespace AutoFleet.Core.Interfaces
+namespace AutoFleet.Core.Interfaces;
+
+/// <summary>
+/// Manages our contract for Vehicle operations, both for single vehicles and fleet summaries.
+/// </summary>
+public interface IVehicleRepository
 {
-    public interface IVehicleRepository
-    {
-        #region SingleVehicle Management
-        Task<IEnumerable<Vehicle>> GetAllAsync();
-        Task<Vehicle?> GetByIdAsync(int id);
-        Task AddAsync(Vehicle vehicle);
+    #region SingleVehicle Management
+    Task<IEnumerable<Vehicle>> GetAllAsync();
+    Task<Vehicle?> GetByIdAsync(int id);
+    Task AddAsync(Vehicle vehicle);
 
-        #endregion
+    #endregion
 
-        #region Fleet Management
-        // 20260221 + PRS: Added contact to get summary of available fleet
-        Task<List<InventoryItem>> GetAvailableFleetSummaryAsync();
+    #region Fleet Management
+    // 20260221 + PRS: Added contact to get summary of available fleet
+    /// <summary>
+    /// Obtains a list of each Vehicle grouped by Name and their availability at the moment
+    /// </summary>
+    /// <returns>List of different vehicles availables</returns>
+    Task<List<InventoryItem>> GetAvailableFleetSummaryAsync();
 
-        #endregion
-    }
+    #endregion
 }
