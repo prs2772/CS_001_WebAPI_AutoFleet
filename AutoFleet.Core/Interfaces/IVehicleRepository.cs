@@ -16,7 +16,7 @@ public interface IVehicleRepository
 
     #region SingleVehicle Management
     Task<IEnumerable<Vehicle>> GetAllAsync();
-    Task<Vehicle?> GetByIdAsync(int id);
+    Task<Vehicle?> GetByVinAsync(string vin);
     Task AddAsync(Vehicle vehicle);
 
     #endregion
