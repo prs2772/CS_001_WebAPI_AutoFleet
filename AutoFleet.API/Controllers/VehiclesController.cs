@@ -5,14 +5,14 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace AutoFleet.API.Controllers
 {
-    [Authorize] // Requiere autenticación para acceder a cualquier endpoint
-    [ApiController] // Habilita validaciones automáticas y comportamientos de API
-    [Route("api/[controller]")] // La ruta será: api/vehicles
+    [Authorize] // Authentication required
+    [ApiController] // Automatic validations and API behavior
+    [Route("api/[controller]")] // Url: MyIP... api/vehicles
     public class VehiclesController : ControllerBase
     {
         private readonly IVehicleService _vehicleService;
 
-        // Inyección de Dependencias: Pedimos el SERVICIO, no el Repositorio
+        // Dependency Injection: Asking SERVICE as Interface, not the concretion? (O concreción)
         public VehiclesController(IVehicleService vehicleService)
         {
             _vehicleService = vehicleService;
@@ -23,15 +23,15 @@ namespace AutoFleet.API.Controllers
         public async Task<IActionResult> GetAll()
         {
             var vehicles = await _vehicleService.GetAllVehiclesAsync();
-            return Ok(vehicles); // Retorna HTTP 200 con la lista
+            return Ok(vehicles); // List of vehicles
         }
 
         // POST: api/vehicles
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateVehicleDto vehicleDto)
         {
-            // El [ApiController] valida automáticamente el DTO (Required, StringLength, etc.)
-            // Si no cumple, retorna BadRequest (400) automáticamente.
+            // [ApiController] Validates the DTO (Required, StringLength, etc.)
+            // If it is not valid data, we return BadRequest (400) auto
 
             try 
             {
@@ -42,7 +42,6 @@ namespace AutoFleet.API.Controllers
             }
             catch (Exception ex)
             {
-                // Manejo básico de errores (luego veremos el global)
                 return StatusCode(500, "Error interno: " + ex.Message);
             }
         }
