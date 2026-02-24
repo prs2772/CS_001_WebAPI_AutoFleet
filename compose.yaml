@@ -30,6 +30,7 @@ services:
     ports:
       - "5000:8080"
     environment:
+      - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=autofleet-db;Database=AutoFleetDb;User Id=sa;Password=sWyeUEUL45!348&3c;TrustServerCertificate=True;
       - ConnectionStrings__MongoDbConnection=mongodb://autofleet-mongo:27017
       - Jwt__Key=njsdbnautyHwjemji13w2(%3nn29IKodmm!3094adW
