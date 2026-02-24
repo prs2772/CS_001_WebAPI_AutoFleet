@@ -22,8 +22,28 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+  autofleet-api:
+    build:
+      context: .
+      dockerfile: AutoFleet.API/Dockerfile
+    container_name: autofleet_api_container
+    ports:
+      - "5000:8080"
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=autofleet-db;Database=AutoFleetDb;User Id=sa;Password=sWyeUEUL45!348&3c;TrustServerCertificate=True;
+      - ConnectionStrings__MongoDbConnection=mongodb://autofleet-mongo:27017
+      - Jwt__Key=njsdbnautyHwjemji13w2(%3nn29IKodmm!3094adW
+    depends_on:
+      - autofleet-db
+      - autofleet-mongo
+    networks:
+      - autofleet-network
 
 volumes:
   sql_data:
   mongo_data: #Volumen de mongoDB
+
+networks:
+  autofleet-network:
+    driver: bridge
   

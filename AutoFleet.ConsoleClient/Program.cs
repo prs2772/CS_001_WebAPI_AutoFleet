@@ -97,15 +97,15 @@ class Program
         var vehiclesToUpload = new[]
         {
             // Valid Data
-            new { Vin = "TSLA-Y-2024-001", Brand = "Tesla", Model = "Model Y", Year = 2024, Price = 55000m, Status = 1, PassengerCapacity = 4, KmPerLiter = 15.0m },
+            new { Vin = "TSLA-Y-2024-001", Brand = "Tesla", Model = "Model Y", Year = 2024, Price = 55000m, Status = "Available", PassengerCapacity = 4, KmPerLiter = 15.0m },
             // Valid Data (High Efficiency)
-            new { Vin = "TSLA-3-2025-002", Brand = "Tesla", Model = "Model 3", Year = 2025, Price = 48000m, Status = 1, PassengerCapacity = 4, KmPerLiter = 16.5m },
+            new { Vin = "TSLA-3-2025-002", Brand = "Tesla", Model = "Model 3", Year = 2025, Price = 48000m, Status = "Available", PassengerCapacity = 4, KmPerLiter = 16.5m },
             // Valid Data (Van)
-            new { Vin = "FORD-TR-2024-03", Brand = "Ford", Model = "Transit", Year = 2024, Price = 45000m, Status = 1, PassengerCapacity = 15, KmPerLiter = 9.0m },
+            new { Vin = "FORD-TR-2024-03", Brand = "Ford", Model = "Transit", Year = 2024, Price = 45000m, Status = "Available", PassengerCapacity = 15, KmPerLiter = 9.0m },
             // Valid Data (Hybrid)
-            new { Vin = "TYT-PRIUS-24-04", Brand = "Toyota", Model = "Prius", Year = 2024, Price = 30000m, Status = 1, PassengerCapacity = 5, KmPerLiter = 22.0m },
+            new { Vin = "TYT-PRIUS-24-04", Brand = "Toyota", Model = "Prius", Year = 2024, Price = 30000m, Status = "Available", PassengerCapacity = 5, KmPerLiter = 22.0m },
             // Edge Case: Future Car (Changed 2077 to 2055 to pass validation Range[1900-2059])
-            new { Vin = "CYBER-TRK-2055", Brand = "Tesla", Model = "CyberTruck", Year = 2055, Price = 99000m, Status = 1, PassengerCapacity = 6, KmPerLiter = 12.0m },
+            new { Vin = "CYBER-TRK-2055", Brand = "Tesla", Model = "CyberTruck", Year = 2055, Price = 99000m, Status = "Available", PassengerCapacity = 6, KmPerLiter = 12.0m },
         };
 
         // D. Send Loop with Resilience
