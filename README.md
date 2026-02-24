@@ -203,3 +203,23 @@ dotnet ef migrations add InitialCreate --project AutoFleet.Infrastructure --star
 
 ### 4. Crear BD nueva
 dotnet ef database update --project AutoFleet.Infrastructure --startup-project AutoFleet.API
+
+# ☁️ 7. Cloud 
+## Contenerizar la Aplicación
+Se agrega el Dockerfile y se hace downgrade para .net8 porque no hay imagenes del 10 
+
+## Construirla
+docker compose down
+docker compose up --build
+
+## Subir a Azure
+![alt text](image.png)
+### 1. Login
+az acr login --name autofleetregparis
+
+# 2. Etiquetar
+docker images
+docker tag sol_proj_002-autofleet-api autofleetregparis.azurecr.io/autofleet-api:v1
+
+# 3. Subir a la nube
+docker push autofleetregparis.azurecr.io/autofleet-api:v1
