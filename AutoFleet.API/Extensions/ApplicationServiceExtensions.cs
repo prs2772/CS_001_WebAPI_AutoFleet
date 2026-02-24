@@ -41,7 +41,8 @@ public static class ApplicationServiceExtensions
         // Domain Services
         services.AddScoped<IVehicleService, VehicleService>();
         services.AddScoped<IFleetOptimizerService, FleetOptimizerService>();
-
+        services.AddScoped<IAuthService, AuthService>();
+        
         // 4. Swagger / API Explorer
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();

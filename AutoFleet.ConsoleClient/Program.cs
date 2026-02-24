@@ -1,104 +1,154 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Polly;
-using Polly.Extensions.Http;
+using Polly.Extensions.Http; // Requires Microsoft.Extensions.Http.Polly
+using System.Net.Http.Json;  // Requires System.Net.Http.Json
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using Newtonsoft.Json;
+using Newtonsoft.Json;       // Requires Newtonsoft.Json
 
-// 1. Configurar Polly (La política de reintentos)
-// "Si falla por error de red o 5XX o 408, espera y reintenta 3 veces exponencialmente"
-var retryPolicy = HttpPolicyExtensions
-    .HandleTransientHttpError() 
-    .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-        (outcome, timespan, retryCount, context) =>
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        Console.Title = "AutoFleet Load Simulator";
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("=============================================");
+        Console.WriteLine("   AUTOFLEET - FLEET LOADER & SIMULATOR 🚀   ");
+        Console.WriteLine("=============================================");
+        Console.ResetColor();
+
+        // 1. Configure Polly (Retry Policy)
+        // Strategy: "Exponential Backoff". If network fails or 5XX/408 error occurs, 
+        // wait 2s, then 4s, then 8s.
+        var retryPolicy = HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                (outcome, timespan, retryCount, context) =>
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine($"⚠️ Network glitch detected. Retrying attempt #{retryCount} in {timespan.TotalSeconds}s...");
+                    Console.ResetColor();
+                });
+
+        // 2. Configure DI and HttpClient
+        var serviceCollection = new ServiceCollection();
+        
+        serviceCollection.AddHttpClient("AutoFleetApi", client =>
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"⚠️ Fallo detectado. Reintentando por vez #{retryCount} en {timespan.TotalSeconds}s...");
+            client.BaseAddress = new Uri("http://localhost:5216"); 
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        })
+        .AddPolicyHandler(retryPolicy); // Hooking up Polly
+
+        var services = serviceCollection.BuildServiceProvider();
+        var httpClientFactory = services.GetRequiredService<IHttpClientFactory>();
+        var client = httpClientFactory.CreateClient("AutoFleetApi");
+
+        // --- START PROCESS ---
+
+        // A. Authentication (Get Token)
+        Console.WriteLine("\n🔑 Authenticating as Admin...");
+        
+        // Note: Make sure this user exists in your DB (via Postman or previous migration seed)
+        var loginData = new { Username = "Admin", Password = "Password123!" }; 
+        
+        try 
+        {
+            var loginResponse = await client.PostAsJsonAsync("/api/auth/login", loginData);
+
+            if (!loginResponse.IsSuccessStatusCode)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"❌ Login Failed. Status: {loginResponse.StatusCode}");
+                Console.WriteLine("   (Did you create the user via /api/auth/register first?)");
+                Console.ResetColor();
+                return;
+            }
+
+            var loginContent = await loginResponse.Content.ReadAsStringAsync();
+            
+            // Flexible Deserialization (Handles "token" or "Token")
+            dynamic tokenObj = JsonConvert.DeserializeObject(loginContent);
+            string token = tokenObj.token ?? tokenObj.Token;
+
+            if (string.IsNullOrEmpty(token))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("❌ Error: Token is null or empty.");
+                return;
+            }
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"✅ Login Successful! Token acquired.");
             Console.ResetColor();
-        });
 
-// 2. Configurar HttpClient con DI
-var serviceCollection = new ServiceCollection();
-serviceCollection.AddHttpClient("AutoFleetApi", client =>
-{
-    client.BaseAddress = new Uri("http://localhost:5216"); // <--- CAMBIA ESTO POR TU PUERTO REAL
-})
-.AddPolicyHandler(retryPolicy); // <--- Aquí conectamos Polly
+            // B. Set Header for subsequent requests
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        }
+        catch (Exception ex)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"❌ Connection Error: Is the API running? {ex.Message}");
+            return;
+        }
 
-var services = serviceCollection.BuildServiceProvider();
-var httpClientFactory = services.GetRequiredService<IHttpClientFactory>();
-var client = httpClientFactory.CreateClient("AutoFleetApi");
-
-// --- INICIO DEL FLUJO ---
-
-Console.WriteLine("🚀 Iniciando simulador de carga de vehículos...");
-
-// A. Autenticación (Obtener Token)
-Console.WriteLine("🔑 Autenticando como Admin...");
-var loginData = new { Username = "admin", Password = "admin123" };
-var loginResponse = await client.PostAsJsonAsync("/api/auth/login", loginData);
-
-if (!loginResponse.IsSuccessStatusCode)
-{
-    Console.WriteLine("❌ Error de login. Terminando.");
-    return;
-}
-
-// ... código anterior ...
-var loginContent = await loginResponse.Content.ReadAsStringAsync();
-
-// DEBUG: Ver qué llegó realmente
-Console.WriteLine($"Respuesta cruda: {loginContent}");
-
-dynamic tokenObj = JsonConvert.DeserializeObject(loginContent);
-
-// CORRECCIÓN: Intenta acceder con minúscula 'token' si la API lo serializó así
-string token = tokenObj.token ?? tokenObj.Token; // Busca ambos por si acaso
-
-if (string.IsNullOrEmpty(token))
-{
-    Console.WriteLine("❌ ERROR: El token llegó vacío o nulo.");
-    return;
-}
-
-Console.WriteLine($"✅ Token recibido: {token.Substring(0, 10)}..."); // Imprime solo el inicio
-// ... resto del código ...
-
-Console.WriteLine("✅ Login exitoso. Token recibido.");
-
-// B. Configurar Token en Headers
-client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-// C. Generar Lote de Vehículos (JSON Simulado)
-var vehiclesToUpload = new[]
-{
-    // VINs ficticios de 17 caracteres
-    new { Vin = "SIMTESLAMODELY001", Brand = "Tesla", Model = "Model Y", Year = 2024, Price = 55000, Status = 1, PassengerCapacity = 4, KmPerLiter = 12 },
-    new { Vin = "SIMTESLAMODEL3002", Brand = "Tesla", Model = "Turbo Jet", Year = 2077, Price = 999999, Status = 1, PassengerCapacity = 1, KmPerLiter = 3 },
-    new { Vin = "SIMFORDMACHE00003", Brand = "Ford", Model = "Mach-E", Year = 2024, Price = 40000, Status = 1, PassengerCapacity = 6, KmPerLiter = 14 },
-    new { Vin = "SIMTESLAMODELY004", Brand = "Tesla", Model = "Model Y", Year = 2026, Price = 55000, Status = 1, PassengerCapacity = 4, KmPerLiter = 15 },
-    new { Vin = "SIMTESLAMODELY005", Brand = "Tesla", Model = "Model Y", Year = 2025, Price = 55000, Status = 1, PassengerCapacity = 4, KmPerLiter = 14 },
-};
-
-// D. Enviar con Resiliencia
-foreach (var vehicle in vehiclesToUpload)
-{
-    try
-    {
-        Console.WriteLine($"📤 Enviando {vehicle.Brand} {vehicle.Model}...");
+        // C. Define Vehicle Batch
+        Console.WriteLine("\n📦 Preparing Vehicle Batch...");
         
-        // Polly está "envolviendo" esta llamada. Si la API estuviera apagada, reintentaría.
-        var response = await client.PostAsJsonAsync("/api/vehicles", vehicle);
-        
-        if (response.IsSuccessStatusCode)
-             Console.WriteLine($"✅ {vehicle.Model} guardado correctamente.");
-        else
-             Console.WriteLine($"❌ Error al guardar {vehicle.Model}: {response.StatusCode}");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"💀 Error fatal: {ex.Message}");
+        var vehiclesToUpload = new[]
+        {
+            // Valid Data
+            new { Vin = "TSLA-Y-2024-001", Brand = "Tesla", Model = "Model Y", Year = 2024, Price = 55000m, Status = 1, PassengerCapacity = 4, KmPerLiter = 15.0m },
+            // Valid Data (High Efficiency)
+            new { Vin = "TSLA-3-2025-002", Brand = "Tesla", Model = "Model 3", Year = 2025, Price = 48000m, Status = 1, PassengerCapacity = 4, KmPerLiter = 16.5m },
+            // Valid Data (Van)
+            new { Vin = "FORD-TR-2024-03", Brand = "Ford", Model = "Transit", Year = 2024, Price = 45000m, Status = 1, PassengerCapacity = 15, KmPerLiter = 9.0m },
+            // Valid Data (Hybrid)
+            new { Vin = "TYT-PRIUS-24-04", Brand = "Toyota", Model = "Prius", Year = 2024, Price = 30000m, Status = 1, PassengerCapacity = 5, KmPerLiter = 22.0m },
+            // Edge Case: Future Car (Changed 2077 to 2055 to pass validation Range[1900-2059])
+            new { Vin = "CYBER-TRK-2055", Brand = "Tesla", Model = "CyberTruck", Year = 2055, Price = 99000m, Status = 1, PassengerCapacity = 6, KmPerLiter = 12.0m },
+        };
+
+        // D. Send Loop with Resilience
+        Console.WriteLine($"🚀 Starting upload of {vehiclesToUpload.Length} vehicles...\n");
+
+        foreach (var vehicle in vehiclesToUpload)
+        {
+            try
+            {
+                Console.Write($"   📤 Uploading {vehicle.Brand} {vehicle.Model} ({vehicle.Vin})... ");
+                
+                // Polly wraps this call automatically
+                var response = await client.PostAsJsonAsync("/api/vehicles", vehicle);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("OK");
+                }
+                else
+                {
+                    var errorDetails = await response.Content.ReadAsStringAsync();
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"FAILED");
+                    Console.WriteLine($"      Status: {response.StatusCode}");
+                    Console.WriteLine($"      Details: {errorDetails}");
+                }
+                Console.ResetColor();
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"\n💀 Fatal Request Error: {ex.Message}");
+                Console.ResetColor();
+            }
+            
+            // Small delay to visualize the process
+            await Task.Delay(500);
+        }
+
+        Console.WriteLine("\n=============================================");
+        Console.WriteLine("🏁 Process Finished.");
+        Console.WriteLine("=============================================");
+        Console.ReadKey();
     }
 }
-
-Console.WriteLine("🏁 Proceso finalizado.");
