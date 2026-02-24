@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using AutoFleet.Application.Interfaces;
 using AutoFleet.Application.DTOs;
 using Microsoft.AspNetCore.Authorization;
+using System.Text.Json;
 
 namespace AutoFleet.API.Controllers
 {
@@ -49,16 +50,77 @@ namespace AutoFleet.API.Controllers
             // [ApiController] Validates the DTO (Required, StringLength, etc.)
             // If it is not valid data, we return BadRequest (400) auto
 
-            try 
+            try
             {
                 var createdVehicle = await _vehicleService.CreateVehicleAsync(vehicleDto);
-                
+
                 // Retorna 201 Created
                 return CreatedAtAction(nameof(GetAll), new { }, createdVehicle);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, "Error interno: " + ex.Message);
+            }
+        }
+
+
+        /* ----------------------------------------------------------------------------------
+        INTEGRACIÓN API EXTERNA (NHTSA)
+        ----------------------------------------------------------------------------------
+        Objetivo:    Consumir servicio REST de terceros (Requisito de la guía).
+        Fuente:      NHTSA vPIC API (Gobierno USA - Open Data).
+        Doc Oficial: https://vpic.nhtsa.dot.gov/api/
+        
+        Proceso de Integración:
+        1. Endpoint seleccionado: GetModelsForMake
+        2. Truco técnico: Esta API retorna XML por defecto. Se debe anexar '?format=json'
+            en el QueryString para interoperabilidad moderna.
+        3. Arquitectura: Implementado como un "Proxy Passthrough" en el controlador
+            para demostración rápida. En producción, esto iría en un servicio 
+            'IVehicleInfoProvider' dentro de Infraestructura.
+        ----------------------------------------------------------------------------------
+        */
+        /// <summary>
+        /// [PROXY] Consulta la base de datos gubernamental de la NHTSA (USA) para obtener modelos.
+        /// </summary>
+        /// <remarks>
+        /// Este endpoint actúa como un Gateway hacia la API pública vPIC (Vehicle Product Information Catalog).
+        /// Útil para validar marcas o poblar selectores de modelos sin mantener una base de datos propia.
+        /// <br/>
+        /// <strong>Fuente:</strong> https://vpic.nhtsa.dot.gov/api/
+        /// </remarks>
+        /// <param name="make">Nombre de la marca (ej. "tesla", "ford", "bmw").</param>
+        /// <returns>JSON crudo con la lista de modelos oficiales.</returns>
+        /// <response code="200">Retorna la lista de modelos en formato JSON.</response>
+        /// <response code="502">Bad Gateway. Error de conexión con la API externa.</response>
+        [HttpGet("external-models/{make}")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status502BadGateway)]
+        public async Task<IActionResult> GetModelsFromExternalApi(string make)
+        {
+            // 1. Instanciamos HttpClient (En PROD usar IHttpClientFactory)
+            using var httpClient = new HttpClient();
+            
+            // 2. Construimos la URL
+            // Tip de investigación: La API por defecto devuelve XML, forzamos JSON con ?format=json
+            var url = $"https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/{make}?format=json";
+
+            try 
+            {
+                // 3. Llamada Asíncrona
+                var response = await httpClient.GetAsync(url);
+                
+                if (!response.IsSuccessStatusCode)
+                    return StatusCode(StatusCodes.Status502BadGateway, "Error al conectar con NHTSA");
+
+                var jsonString = await response.Content.ReadAsStringAsync();
+                
+                // Retornamos el contenido tal cual (Proxy Passthrough)
+                return Content(jsonString, "application/json");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Error interno: {ex.Message}");
             }
         }
     }
