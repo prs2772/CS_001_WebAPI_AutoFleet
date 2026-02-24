@@ -167,3 +167,17 @@ dotnet ef database drop --project AutoFleet.Infrastructure --startup-project Aut
 ### Borrar la carpeta de migraciones completa
 dotnet ef migrations add InitialCreate --project AutoFleet.Infrastructure --startup-project AutoFleet.API
 dotnet ef database update --project AutoFleet.Infrastructure --startup-project AutoFleet.API
+
+# Agregando auth correctamente y almacenando los resultados en la BD
+## Instalando BCRYPT
+dotnet add AutoFleet.Application/AutoFleet.Application.csproj package BCrypt.Net-Next
+## Creando nueva migracion 
+dotnet ef migrations add AddUsersTable
+dotnet ef database update --project AutoFleet.Infrastructure --startup-project AutoFleet.API
+### Nota, dotnet ef migrations script genera SQL sin ejecutarlo
+## Para el token y auth requerimos agregar en la classlib:
+### Para leer IConfiguration (appsettings)
+dotnet add AutoFleet.Application/AutoFleet.Application.csproj package Microsoft.Extensions.Configuration.Abstractions
+### Para generar los JWT (Tokens)
+dotnet add AutoFleet.Application/AutoFleet.Application.csproj package System.IdentityModel.Tokens.Jwt
+

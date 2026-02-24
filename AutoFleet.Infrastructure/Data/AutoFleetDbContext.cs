@@ -11,6 +11,7 @@ public class AutoFleetDbContext : DbContext
 
     // Defining Entities
     public DbSet<Vehicle> Vehicles { get; set; }
+    public DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

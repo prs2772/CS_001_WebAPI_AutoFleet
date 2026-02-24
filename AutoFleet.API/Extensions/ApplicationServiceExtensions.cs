@@ -35,6 +35,9 @@ public static class ApplicationServiceExtensions
         // When resolving single IVehicleRepository, the LAST one registered wins (unless handled manually).
         services.AddScoped<IVehicleRepository, MongoVehicleRepository>();
 
+        // Registering Users on SQL Repository
+        services.AddScoped<IUserRepository, UserRepository>();
+
         // Domain Services
         services.AddScoped<IVehicleService, VehicleService>();
         services.AddScoped<IFleetOptimizerService, FleetOptimizerService>();
