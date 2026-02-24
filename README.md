@@ -108,6 +108,12 @@ Protección de la API con Tokens y Hashing de contraseñas.
 ### Paquetes en API (Para validar el token)
 dotnet add AutoFleet.API/AutoFleet.API.csproj package Microsoft.AspNetCore.Authentication.JwtBearer
 
+## Feature Swagger documentación
+
+### Paquetes para using Microsoft.OpenApi.Models;
+dotnet add AutoFleet.API/AutoFleet.API.csproj package Microsoft.OpenApi
+dotnet add AutoFleet.API/AutoFleet.API.csproj package Swashbuckle.AspNetCore
+
 ### Paquetes en Application (Para generar token y hashear pass)
 dotnet add AutoFleet.Application/AutoFleet.Application.csproj package System.IdentityModel.Tokens.Jwt
 dotnet add AutoFleet.Application/AutoFleet.Application.csproj package Microsoft.Extensions.Configuration.Abstractions

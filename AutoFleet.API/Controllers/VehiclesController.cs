@@ -18,7 +18,12 @@ namespace AutoFleet.API.Controllers
             _vehicleService = vehicleService;
         }
 
-        // GET: api/vehicles
+        /// <summary>
+        /// Obtiene todos los vehículos registrados en la base de datos.
+        /// </summary>
+        /// <returns>Lista completa de vehículos.</returns>
+        /// <response code="200">Devuelve la lista de vehículos.</response>
+        /// <response code="401">No autenticado.</response>
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -26,7 +31,18 @@ namespace AutoFleet.API.Controllers
             return Ok(vehicles); // List of vehicles
         }
 
-        // POST: api/vehicles
+        /// <summary>
+        /// Crea un nuevo vehículo en el inventario.
+        /// </summary>
+        /// <remarks>
+        /// Valida los datos de entrada según las reglas de negocio (año, rango de precios, etc.).
+        /// </remarks>
+        /// <param name="vehicleDto">Datos del vehículo a crear.</param>
+        /// <returns>El vehículo creado con su ID asignado.</returns>
+        /// <response code="201">Vehículo creado exitosamente.</response>
+        /// <response code="400">Datos de entrada inválidos.</response>
+        /// <response code="401">No autenticado.</response>
+        /// <response code="500">Error interno del servidor.</response>
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateVehicleDto vehicleDto)
         {
