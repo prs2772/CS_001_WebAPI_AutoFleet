@@ -1,183 +1,199 @@
-# Esqueleto de la aplicación - ESQ
+# 📘 Documentación Ultimate - AutoFleet
+# 1. Esqueleto y Creación del Proyecto
+Comandos para generar la estructura Clean Architecture desde cero.
 
-## ESQ.1 Crear la solución y las capas
+## 1.1 Crear la Solución y Capas
+### Solución vacía
 dotnet new sln -n AutoFleet
-## ESQ.2 Crear cada capa
-### ESQ.2.1 Capa de API (Presentación - Controllers, Middleware, Swagger, JWT)
-dotnet new webapi -n AutoFleet.API
-### ESQ.2.2 Capa de Core (Dominio - Entidades, Interfaces, DTOs)
-dotnet new classlib -n AutoFleet.Core
-### ESQ.2.3 Capa de Infrastructure (Datos - Repositories, EF Core, Migrations)
-dotnet new classlib -n AutoFleet.Infrastructure
-### ESQ.2.4 Crear la capa de Aplicación (Casos de uso)
-dotnet new classlib -n AutoFleet.Application
 
-## ESQ.3 Agregar proyectos a la solución
+### Capas (Proyectos)
+dotnet new webapi -n AutoFleet.API                # Presentación
+dotnet new classlib -n AutoFleet.Core             # Dominio Puro
+dotnet new classlib -n AutoFleet.Infrastructure   # Acceso a Datos
+dotnet new classlib -n AutoFleet.Application      # Casos de Uso
+
+### Agregar proyectos a la solución (.sln)
 dotnet sln add AutoFleet.API/AutoFleet.API.csproj
 dotnet sln add AutoFleet.Core/AutoFleet.Core.csproj
 dotnet sln add AutoFleet.Infrastructure/AutoFleet.Infrastructure.csproj
 dotnet sln add AutoFleet.Application/AutoFleet.Application.csproj
 
-## ESQ.4 Referencias entre capas (La dependencia fluye hacia adentro o hacia infraestructura)
-### ESQ.4.1 API usa Core e Infrastructure
+## 1.2 Referencias entre Capas (Dependencias)
+La regla de oro: Las dependencias apuntan hacia adentro (Core) o hacia Infraestructura desde API.
+
+### API conoce a todos para poder inyectarlos
 dotnet add AutoFleet.API/AutoFleet.API.csproj reference AutoFleet.Core/AutoFleet.Core.csproj
 dotnet add AutoFleet.API/AutoFleet.API.csproj reference AutoFleet.Infrastructure/AutoFleet.Infrastructure.csproj
 dotnet add AutoFleet.API/AutoFleet.API.csproj reference AutoFleet.Application/AutoFleet.Application.csproj
-#### Se agrega a API Infraestructure
-dotnet add AutoFleet.API reference AutoFleet.Infrastructure/
-### ESQ.4.2 Infrastructure usa Core (para implementar interfaces)
+
+### Infrastructure implementa interfaces de Core y usa DTOs de Application
 dotnet add AutoFleet.Infrastructure/AutoFleet.Infrastructure.csproj reference AutoFleet.Core/AutoFleet.Core.csproj
 dotnet add AutoFleet.Infrastructure/AutoFleet.Infrastructure.csproj reference AutoFleet.Application/AutoFleet.Application.csproj
-### ESQ.4.3 Application usa Core (porque maneja Entidades)
+
+### Application usa Entidades de Core
 dotnet add AutoFleet.Application/AutoFleet.Application.csproj reference AutoFleet.Core/AutoFleet.Core.csproj
 
-## ESQ.5 Agrega EF
-### ESQ.5.1 Para el proyecto de Infraestructura (el que hace el trabajo sucio)
+# 2. Configuración de Base de Datos y ORM
+## 2.1 Instalar Entity Framework Core
+### En Infraestructura (Quien hace el trabajo real con SQL)
 dotnet add AutoFleet.Infrastructure/AutoFleet.Infrastructure.csproj package Microsoft.EntityFrameworkCore.SqlServer
-### ESQ.5.2 Para el proyecto de API (el que ejecuta los comandos de herramientas)
+
+### En API (Quien tiene las herramientas para ejecutar comandos)
 dotnet add AutoFleet.API/AutoFleet.API.csproj package Microsoft.EntityFrameworkCore.Design
 
-## ESQ.6 Crear la migración inicial (esto genera código C# SQL)
+## 2.2 Gestión de Migraciones (SQL Server)
+### Crear la migración inicial (Genera el código C# para crear tablas)
 dotnet ef migrations add InitialCreate --project AutoFleet.Infrastructure --startup-project AutoFleet.API
 
-## ESQ.7 Aplicar la migración (esto ejecuta el SQL en el contenedor)
+### Aplicar cambios a la BD (Ejecuta el SQL)
 dotnet ef database update --project AutoFleet.Infrastructure --startup-project AutoFleet.API
 
-## ESQ.8 Instalar el swagger
-dotnet add AutoFleet.API/AutoFleet.API.csproj package Swashbuckle.AspNetCore
+# 3. Arquitectura Explicada (Analogía de un Restaurante)
+## 🏨 La Base de Datos (Docker / SQL Server)
+Es el Local del Restaurante. Docker nos permite montar el local en cualquier máquina sin instalar cemento (software) permanente.
 
-# Aproximación intuitiva
-## 1. La Base de datos con Docker (compose.yml)
-Con Docker se crea un contenedor prefabricado, si se rompe o se requiere usar en otro dispositivo para desarrollo es más sencillo.
-Así se logra que funcione en diferentes entornos. Simulando un restaruante es el local que se alquiladonde montaremos todo, los clientes, mesas, etc.
-
-## 2. La API: El Mesero (VehiclesController.cs)
-Capa: Presentación (AutoFleet.API).
-
-¿Qué hace?
+## 🤵 La API (VehiclesController.cs) - Capa Presentación
+El Mesero.
 
 Recibe al cliente (Postman/React).
 
 Toma la orden (POST /api/vehicles).
 
-¡OJO! No cocina. El mesero no toca la sartén. Solo pasa la nota a la cocina.
+Regla: No cocina. Solo pasa la nota. Si cambias al mesero por una App, la cocina sigue igual.
 
-¿Por qué está ahí?
+## 👨‍🍳 La Application (VehicleService.cs) - Capa Aplicación
+El Chef.
 
-Separa la "puerta de entrada" de la lógica. Si mañana quieres cambiar la API por una App de Consola o una App Móvil, la lógica de cocina no cambia, solo cambias al mesero.
+Recibe la nota.
 
-## 3. La Application: El Chef (VehicleService.cs)
-Capa: Aplicación (AutoFleet.Application).
+Valida reglas de negocio ("¿Hay ingredientes?", "No aceptamos autos del año 1800").
 
-¿Qué hace?
+Pide ingredientes al almacén.
 
-Recibe la nota del mesero.
+Prepara el plato final (DTO).
 
-Revisa las reglas: "¿Tenemos ingredientes? ¿El cliente es alérgico?". Aquí van las validaciones de negocio (ej: "No aceptamos autos anteriores a 1900").
+Nota: El DTO es el menú. No le das al cliente la vaca cruda (Entidad), le das la hamburguesa (DTO).
 
-Coordina. Le pide al almacén los ingredientes y prepara el plato final (el DTO).
+## ⚛️ El Core (Vehicle.cs) - Capa Dominio
+Las Leyes de la Física.
 
-Los DTOs (VehicleDto.cs):
+Define QUÉ es un vehículo.
 
-Es el Menú. El cliente elige del menú, no entra a la despensa a morder una vaca cruda.
+Contiene las Interfaces (Contratos): "Necesito alguien que sepa guardar datos".
 
-Tu lección: Nunca expongas tu Entidad de base de datos (la vaca) directamente al cliente. Usa DTOs (la hamburguesa) para proteger tus datos internos.
+Es el corazón puro, sin dependencias externas.
 
-## 4. El Core: Las Leyes de la Física (Vehicle.cs y Interfaces)
-Capa: Dominio (AutoFleet.Core).
+## 🏭 La Infrastructure (VehicleRepository.cs) - Capa Infraestructura
+El Almacén.
 
-¿Qué hace?
+Es el único que sabe que usamos SQL Server o Mongo.
 
-Define QUÉ es un vehículo. Un vehículo tiene marca y modelo aquí y en China. No le importa si se guarda en SQL, en Excel o en una servilleta.
+Implementa el contrato del Core. Traduce "Guardar" a INSERT INTO....
 
-Define las Interfaces (IVehicleRepository): Son los "Contratos". El Core dice: "Necesito alguien que sepa guardar vehículos, no me importa cómo lo haga, solo firmen aquí".
-
-¿Por qué está ahí?
-
-Es el corazón puro. No tiene dependencias externas (ni NuGet de SQL, ni de API). Es lo más estable de tu sistema.
-
-## 5. La Infrastructure: El Almacén (VehicleRepository.cs y DbContext)
-Capa: Infraestructura (AutoFleet.Infrastructure).
-
-¿Qué hace?
-
-Es el único que sabe que estamos usando SQL Server.
-
-Implementa el contrato del Core. El Chef (Service) le dice "Guárdame esto" y el Almacén (Repository) sabe cómo traducir eso a INSERT INTO Vehicles....
-
-La Inyección de Dependencias (DependencyInjection.cs):
-
-Es el momento en que el dueño del restaurante conecta todo. Dice: "Cuando el Chef pida un almacén, denle ESTE almacén de SQL Server".
-
-Tu lección: Esto permite cambiar SQL Server por MongoDB en el futuro tocando solo esta capa, sin romper al Chef ni al Mesero.
-
-# Agregando feature/002 una BD adicional para Persistencia políglota
+# 4. Features Implementados
+🧩 Feature: Persistencia Políglota (MongoDB)
+## Agregamos soporte para bases de datos NoSQL.
 dotnet add AutoFleet.Infrastructure/AutoFleet.Infrastructure.csproj package MongoDB.Driver
 
-# Agregando feature/003 Optimizador de Flota para Eventos
-## Planteamiento
-El Problema de Negocio:
-Imagina que AutoFleet tiene un cliente corporativo (digamos, una empresa que organiza retiros). Te llaman y dicen:
-"Tengo que transportar a 87 empleados al aeropuerto pero en el futuro serán N. ¿Cuál es la mínima cantidad de vehículos que debo alquilar para llevarlos a todos, optimizando costos (usando los vehículos más grandes primero)?"
-El Mapeo del Algoritmo (Coin Change -> Fleet Allocation):
-Monto Total (N): Número total de pasajeros (ej. 87).
-Monedas: Capacidad de tus vehículos disponibles.
-Autobús: 50 pasajeros.
-Van Ejecutiva: 15 pasajeros.
-SUV: 5 pasajeros.
-Sedán: 4 pasajeros.
-Objetivo: MinCoins -> Mínimo número de choferes/vehículos requeridos.
+## 🧮 Feature: Optimizador de Flota (Algoritmo DP)
+Problema: Transportar N pasajeros con el mínimo de vehículos.
+Solución: Algoritmo Change Making Problem (tipo Mochila).
 
-## Se agrega posterior a los cambios, en la migración:
+### Actualización de BD para soportar capacidades y consumo
 dotnet ef migrations add AddCapacityAndStatus --project AutoFleet.Infrastructure --startup-project AutoFleet.API
 dotnet ef database update --project AutoFleet.Infrastructure --startup-project AutoFleet.API
 
-# Agregando una primera opción de autenticación en feature/004 aprovechando que se unifican solucion inicial y problemática
+## 🔒 Feature: Autenticación y Seguridad (JWT + BCrypt)
+Protección de la API con Tokens y Hashing de contraseñas.
+### Paquetes en API (Para validar el token)
 dotnet add AutoFleet.API/AutoFleet.API.csproj package Microsoft.AspNetCore.Authentication.JwtBearer
-## Creando a El Cliente Simulador (Consumo + Polly)
-### En la raíz
-dotnet new console -n AutoFleet.ConsoleClient
-dotnet sln add AutoFleet.ConsoleClient/AutoFleet.ConsoleClient.csproj
 
-### Agregar paquetes de HTTP y Polly
-dotnet add AutoFleet.ConsoleClient/AutoFleet.ConsoleClient.csproj package Microsoft.Extensions.Http
-dotnet add AutoFleet.ConsoleClient/AutoFleet.ConsoleClient.csproj package Microsoft.Extensions.Http.Polly
-dotnet add AutoFleet.ConsoleClient/AutoFleet.ConsoleClient.csproj package Newtonsoft.Json
+### Paquetes en Application (Para generar token y hashear pass)
+dotnet add AutoFleet.Application/AutoFleet.Application.csproj package System.IdentityModel.Tokens.Jwt
+dotnet add AutoFleet.Application/AutoFleet.Application.csproj package Microsoft.Extensions.Configuration.Abstractions
+dotnet add AutoFleet.Application/AutoFleet.Application.csproj package BCrypt.Net-Next
 
-# Agregando tests
-## 1. Crear proyecto xUnit
+### Migración para tabla de Usuarios
+dotnet ef migrations add AddUsersTable --project AutoFleet.Infrastructure --startup-project AutoFleet.API
+dotnet ef database update --project AutoFleet.Infrastructure --startup-project AutoFleet.API
+
+# 5. Pruebas y Calidad (Testing)
+## 5.1 Configuración del Proyecto de Tests
+### Crear proyecto xUnit
 dotnet new xunit -n AutoFleet.Tests
-
-## 2. Agregarlo a la solución
 dotnet sln add AutoFleet.Tests/AutoFleet.Tests.csproj
 
-## 3. Referencias: El test necesita ver a Application y Core
+### Referencias (Testea Application usando Core)
 dotnet add AutoFleet.Tests/AutoFleet.Tests.csproj reference AutoFleet.Application/AutoFleet.Application.csproj
 dotnet add AutoFleet.Tests/AutoFleet.Tests.csproj reference AutoFleet.Core/AutoFleet.Core.csproj
 
-## 4. Instalar Moq (Para simular el Repositorio)
+### Instalar Moq (Para simular dependencias falsas)
 dotnet add AutoFleet.Tests/AutoFleet.Tests.csproj package Moq
 
-# Logs en Application
-## Agregando la interface ILogger en Application, la implementacion real se importa en API
-dotnet add AutoFleet.Application/ package Microsoft.Extensions.Logging.Abstractions
+## 5.2 🧪 GUÍA DE EJECUCIÓN DE PRUEBAS (Desde Cero)
+### A. Pruebas Unitarias (Automáticas)
+Estas pruebas verifican la lógica matemática y de negocio sin tocar la base de datos real.
 
-# Reseteo de todo en EF
+Comando: dotnet test
+Qué valida: Que el algoritmo de optimización seleccione correctamente los vehículos y calcule bien el consumo de gasolina simulado.
+
+### B. Pruebas Manuales / Integración (Swagger)
+Escenario: Base de datos vacía. Queremos probar el sistema completo.
+
+Levantar la API:
+dotnet run --project AutoFleet.API
+
+Ve a: https://localhost:7xxx/swagger
+
+Paso 1: Crear Usuario (Registro) 
+Endpoint: POST /api/auth/register
+
+Body: { "username": "Admin", "password": "Password123!" }
+
+Paso 2: Obtener Token (Login)
+
+Endpoint: POST /api/auth/login
+
+Body: (El mismo de arriba)
+
+Acción: Copia el token de la respuesta. Ve al botón Authorize (candado) arriba a la derecha y escribe: Bearer TU_TOKEN_AQUI.
+
+Paso 3: Sembrar Datos (Crear Flota)
+
+Endpoint: POST /api/vehicles (Ejecutar 3 veces con estos datos):
+
+Vehículo 1 (Eficiente): { "vin": "TSLA-26", "brand": "Tesla", "model": "Model Y", "year": 2026, "price": 55000, "passengerCapacity": 4, "kmPerLiter": 15 }
+
+Vehículo 2 (Gastón): { "vin": "HUMM-10", "brand": "Hummer", "model": "H2", "year": 2010, "price": 40000, "passengerCapacity": 4, "kmPerLiter": 5 }
+
+Vehículo 3 (Bus): { "vin": "BUS-01", "brand": "Mercedes", "model": "Sprinter", "year": 2024, "price": 90000, "passengerCapacity": 15, "kmPerLiter": 9 }
+
+Paso 4: Probar la Inteligencia (Optimización)
+
+Endpoint: POST /api/fleet/optimize
+
+Body: { "totalPassengers": 4 }
+
+Resultado Esperado: Debe elegir el Tesla (15 km/l) sobre la Hummer, demostrando que el algoritmo prioriza eficiencia.
+
+# 6. Mantenimiento y Utilidades
+Cliente de Consola (Simulador)
+## Cliente externo para pruebas de carga o integración simple usando Polly para resiliencia.
+
+dotnet new console -n AutoFleet.ConsoleClient
+dotnet sln add AutoFleet.ConsoleClient/AutoFleet.ConsoleClient.csproj
+dotnet add AutoFleet.ConsoleClient/AutoFleet.ConsoleClient.csproj package Microsoft.Extensions.Http.Polly
+dotnet add AutoFleet.ConsoleClient/AutoFleet.ConsoleClient.csproj package Newtonsoft.Json
+
+## Reinicio Nuclear (Borrar BD y empezar de cero)
+ ⚠️ Peligro: Esto borra todos los datos.
+### 1. Borrar la BD física
 dotnet ef database drop --project AutoFleet.Infrastructure --startup-project AutoFleet.API --force
-### Borrar la carpeta de migraciones completa
+
+### 2. (Opcional) Borrar carpeta Migrations manualmente si se quiere limpiar el historial de código
+
+### 3. Regenerar migración inicial
 dotnet ef migrations add InitialCreate --project AutoFleet.Infrastructure --startup-project AutoFleet.API
-dotnet ef database update --project AutoFleet.Infrastructure --startup-project AutoFleet.API
 
-# Agregando auth correctamente y almacenando los resultados en la BD
-## Instalando BCRYPT
-dotnet add AutoFleet.Application/AutoFleet.Application.csproj package BCrypt.Net-Next
-## Creando nueva migracion 
-dotnet ef migrations add AddUsersTable
+### 4. Crear BD nueva
 dotnet ef database update --project AutoFleet.Infrastructure --startup-project AutoFleet.API
-### Nota, dotnet ef migrations script genera SQL sin ejecutarlo
-## Para el token y auth requerimos agregar en la classlib:
-### Para leer IConfiguration (appsettings)
-dotnet add AutoFleet.Application/AutoFleet.Application.csproj package Microsoft.Extensions.Configuration.Abstractions
-### Para generar los JWT (Tokens)
-dotnet add AutoFleet.Application/AutoFleet.Application.csproj package System.IdentityModel.Tokens.Jwt
-
